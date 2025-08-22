@@ -28,6 +28,7 @@ jobs:
 
       - name: Send approval message
         env:
+          TITLE: 🚀 上传审批
           RECEIVE_ID: ${{ secrets.RECEIVE_ID }}
           AUTHORIZATION: ${{ secrets.AUTHORIZATION }}
           RUN_ID: ${{ github.run_id }}
