@@ -1,0 +1,17 @@
+name: 2. Continuation Workflow - Upload on Approval
+
+on:
+  repository_dispatch:
+    types: [upload_approval] # 匹配中间件中定义的 event_type
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    # 只有当 action 是 'approve' 时才运行此 job
+    if: github.event.client_payload.action == 'approve'
+    steps:
+      - name: Upload
+        run: |
+          echo "Uploading to production..."
+          # 在这里放置您的部署命令
+          echo "Upload complete."
