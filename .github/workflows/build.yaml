@@ -30,7 +30,8 @@ jobs:
         env:
           TITLE: 🚀 上传审批
           RECEIVE_ID: ${{ secrets.RECEIVE_ID }}
-          AUTHORIZATION: ${{ secrets.AUTHORIZATION }}
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
           RUN_ID: ${{ github.run_id }}
         run: |
           python scripts/send.py

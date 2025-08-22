@@ -3,16 +3,27 @@ import json
 import os
 
 receive_id = os.getenv("RECEIVE_ID")
-authorization = os.getenv("AUTHORIZATION")
 run_id = os.getenv("RUN_ID")
 title = os.getenv("TITLE")
+app_id = os.getenv("APP_ID")
+app_secret = os.getenv("APP_SECRET")
 
-if not receive_id or not authorization or not run_id or not title:
-  raise ValueError("RECEIVE_ID, AUTHORIZATION, RUN_ID, TITLE is not set")
+if not receive_id or not run_id or not title or not app_id or not app_secret:
+  raise ValueError("RECEIVE_ID, RUN_ID, TITLE, APP_ID, APP_SECRET is not set")
 
-# 替换为你的自定义机器人的 webhook 地址。
+# 获取 access_token
+def get_access_token():
+  url = f"https://open.larksuite.com/open-apis/auth/v3/tenant_access_token/internal"
+  body = json.dumps({"app_id": app_id, "app_secret": app_secret})
+  res = requests.post(url=url, data=body, timeout=10)
+  if res.status_code != 200:
+    raise ValueError(f"get access_token failed, status_code: {res.status_code}, response: {res.text}")
+
+  return res.json()["tenant_access_token"]
+
+access_token = get_access_token()
+
 url = "https://open.larksuite.com/open-apis/im/v1/messages?receive_id_type=chat_id"
-# 将消息卡片内容粘贴至此处。
 card_json = '''
 {
   "config": {
@@ -32,6 +43,7 @@ card_json = '''
           "type": "primary",
           "value": {
             "action": "approve",
+            "title": "${{ title }}",
             "run_id": "${{ github.run_id }}"
           }
         },
@@ -45,6 +57,7 @@ card_json = '''
           "value": {
             "value": {
               "action": "reject",
+              "title": "${{ title }}",
               "run_id": "${{ github.run_id }}"
             }
           }
@@ -61,10 +74,10 @@ card_json = '''
   }
 }
 '''
-card_json = card_json.replace("${{ github.run_id }}", run_id)
 card_json = card_json.replace("${{ title }}", title)
+card_json = card_json.replace("${{ github.run_id }}", run_id)
 
 body = json.dumps({"msg_type": "interactive", "content": card_json, "receive_id": receive_id})
-headers = {"Content-Type": "application/json", "Authorization": f"Bearer {authorization}"}
+headers = {"Content-Type": "application/json", "Authorization": f"Bearer {access_token}"}
 res = requests.post(url=url, data=body, headers=headers, timeout=10)
 print(res.text)
